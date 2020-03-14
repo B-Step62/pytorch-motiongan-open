@@ -17,6 +17,7 @@ class BVHDataset(Dataset):
     def __init__(self, cfg, mode='train'):
         self.cfg = cfg
         self.datalist, self.indexes = collect_motion_datalist(cfg, mode=mode)
+        self.mode = mode
 
     def __len__(self):
         return len(self.indexes)
@@ -27,7 +28,7 @@ class BVHDataset(Dataset):
         data = self.datalist[motion_id]
         label = data['label'] if self.cfg.class_list else None
         
-        if self.cfg.augment_fps:
+        if self.mode == 'train' and self.cfg.augment_fps:
             # Augument fps with choice from [x0.5, x1.0, x1.5]
             fps = min(np.random.choice([0.5,1.0,1.5]), (data['motion'].shape[0]-start_frame-1)/self.cfg.frame_nums)
             frame_step = int(self.cfg.frame_step * fps)
@@ -54,6 +55,17 @@ class BVHDataset(Dataset):
                 control_part = motion_utils.sampling(trajectory, spline_f, spline_length_map, 1.0, startT=0, endT=frame_nums, step=frame_step, with_noise=True)
             control_part[:,1] = control_part[:,1] - control_part[:,1]
 
+        elif self.mode == 'test':
+            # Get maximum length motion
+            motion = data['motion']
+            motion_part = motion[:motion.shape[0]-motion.shape[0]%(self.cfg.frame_step*16):self.cfg.frame_step,:]
+            
+            if list(data['spline_length_map'].keys())[-1] * 0.1 < motion_part.shape[0] * self.cfg.frame_step:
+                motion_part = motion_part[:-16,:]
+            trajectory_part = motion_part[:,:3] 
+            control_part = motion_utils.sampling(trajectory_part, data['spline_f'], data['spline_length_map'], 0.1, startT=0, endT=motion_part.shape[0]*self.cfg.frame_step, step=self.cfg.frame_step, with_noise=False)
+            control_part[:,1] = control_part[:,1] - control_part[:,1]
+
         else:
             # Cut fixed length sequence from motion
             motion_part = data['motion'][start_frame:start_frame+self.cfg.frame_nums:self.cfg.frame_step, :]
@@ -66,7 +78,7 @@ class BVHDataset(Dataset):
 
 
         # rotation
-        if self.cfg.rotate:
+        if self.mode == 'train' and self.cfg.rotate:
             theta = np.random.rand() * 2. * math.pi
             motion_part = motion_utils.rotate(motion_part, theta)
             control_part = motion_utils.rotate(control_part, theta)
@@ -76,64 +88,6 @@ class BVHDataset(Dataset):
         control_part /= self.cfg.scale 
 
         return motion_part, control_part, label
-
-
-
-
-class Test_BVHDataset_withSpline(Dataset):
-    def __init__(self, cfg, spline_strech=1, spline_dt=0.1, fps=1.0):
-        random_label = (cfg.train.random_label if hasattr(cfg.train, 'random_label') else False) or (cfg.test.random_label if hasattr(cfg.test, 'random_label') else False)
-        class_list = cfg.train.class_list if hasattr(cfg.train, 'class_list') and not random_label else []
-        self.dt = spline_dt
-        self.datalist = collect_motion_datalist(cfg, cfg.test.dataset, mode='test', dt=spline_dt, class_list=class_list)
-        self.cfg = cfg
-        self.frame_step = int(cfg.train.frame_step * fps)
-        self.frame_step = int(self.frame_step / spline_strech)
-        self.spline_strech = spline_strech
-        self.scale = cfg.scale
-        self.use_label = len(class_list)>0
-        self.trajectory_type = cfg.test.trajectory_type if hasattr(cfg.test, 'trajectory_type') else cfg.train.trajectory_type
-
-        meanstd = np.load(cfg.meanstd) if os.path.exists(cfg.meanstd) else None
-        self.meanstd_norm = meanstd is not None
-        if self.meanstd_norm:
-            self.mean = meanstd['mean']
-            self.std = meanstd['std']
-
-    def __len__(self):
-        return len(self.datalist)
-
-    def __getitem__(self, i):
-        data = self.datalist[i]
-        motion_all = data['motion']
-        motion = motion_all[:motion_all.shape[0]-motion_all.shape[0]%(self.frame_step*16):self.frame_step,:]
-
-        # Fot ablation of preprocess
-        if self.trajectory_type == 'direct':
-            spline = motion[:,:3]
-        else:
-            if list(data['spline_length_map'].keys())[-1] * self.dt < motion.shape[0] * self.frame_step:
-                motion = motion[:-16,:]
-
-            spline = motion_utils.sampling(data['trajectory'], data['spline_f'], data['spline_length_map'], self.dt, startT=0, endT=motion.shape[0]*self.frame_step, step=self.frame_step, with_noise=False)
-
-        # 2D
-        if self.trajectory_type.find('2D') > -1:
-            spline[:,1] = np.zeros(spline.shape[0])
-
-        # mean std normalization for each joint
-        if self.meanstd_norm:
-            for j in range(3, motion.shape[1]):
-                motion[:,j] -= self.mean[j]
-                if self.std[j] > 0:
-                    motion[:,j] /= self.std[j]
-
-        # scaling normalization
-        motion /= self.scale
-        spline /= self.scale
-        spline *= self.spline_strech
- 
-        return motion, spline, data['label']
 
 
 
@@ -198,22 +152,20 @@ def collect_motion_datalist(cfg, sampling_interval=3, mode='train'):
         data['label'] = label
 
         # Add data to list
-        if data['motion'].shape[0] > cfg.frame_nums:
-            datalist.append(data)
-   
         if mode == 'train':
-            for j in range((data['motion'].shape[0] - cfg.frame_nums) // sampling_interval):
-                indexes.append(tuple((motion_count, j * sampling_interval)))
+            if data['motion'].shape[0] > cfg.frame_nums:
+                datalist.append(data)
+                for j in range((data['motion'].shape[0] - cfg.frame_nums) // sampling_interval):
+                    indexes.append(tuple((motion_count, j * sampling_interval)))
+        else:
+            datalist.append(data)
+            indexes.append(tuple((motion_count, 0)))
         motion_count += 1
 
 
     if mode == 'train':
         random.shuffle(indexes)
-        return datalist, indexes
-    elif mode == 'test':
-        return datalist
-    else:
-        return
+    return datalist, indexes
 
 
 

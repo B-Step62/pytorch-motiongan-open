@@ -190,7 +190,7 @@ def train_loop(train_loader,
     #####################################################    
 
     # Standard skelton
-    standard_bvh = cfg.train.dataset.standard_bvh if hasattr(cfg.train.dataset, 'standard_bvh') else 'core/utils/CMU_standard.bvh'
+    standard_bvh = cfg.train.dataset.standard_bvh if hasattr(cfg.train.dataset, 'standard_bvh') else 'core/datasets/CMU_standard.bvh'
     class_list = cfg.train.dataset.class_list
     
     # Cofficients of training loss
@@ -429,7 +429,7 @@ def train_loop(train_loader,
             gen.eval()
             # Generate multiple samples
             preview_list = []
-            preview_list.append({'caption': 'real', 'motion': x_data[0,:,:,:], 'control': control.data.cpu()[:1,:,:,:]})
+            preview_list.append({'caption': 'real', 'motion': x_data[:1,:,:,:], 'control': control.data.cpu()[:1,:,:,:]})
             for k in range(3):
                 z = Variable(gen.make_hidden(1, x_data.shape[2])).to(device) if cfg.models.generator.use_z else None
                 fake_label = torch.randint(0, len(class_list), size=(1,)).type(torch.LongTensor).to(device)
