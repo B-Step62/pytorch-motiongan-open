@@ -173,7 +173,7 @@ def collect_motion_datalist(cfg, sampling_interval=3, mode='train'):
         # Create path to save inclusive data (.pkl)
         top, name = os.path.split(npy_path)
         name, ext = os.path.splitext(name)
-        data_path = os.path.join(top, f'spline2D_cp{cfg.control_point_interval}', name+'.pkl')
+        data_path = os.path.join(top, f'processed_cp{cfg.control_point_interval}', name+'.pkl')
         if not os.path.exists(os.path.split(data_path)[0]): os.makedirs(os.path.split(data_path)[0]) 
 
         # Get label information from path
