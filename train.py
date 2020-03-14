@@ -68,8 +68,8 @@ def train():
 
     # Set up networks to train
     num_class = len(cfg.train.dataset.class_list)
-    gen = getattr(models, cfg.train.generator.model)(cfg.train.generator, num_class).to(device)
-    dis = getattr(models, cfg.train.discriminator.model)(cfg.train.discriminator, cfg.train.dataset.frame_nums//cfg.train.dataset.frame_step, num_class).to(device)
+    gen = getattr(models, cfg.models.generator.model)(cfg.models.generator, num_class).to(device)
+    dis = getattr(models, cfg.models.discriminator.model)(cfg.models.discriminator, cfg.train.dataset.frame_nums//cfg.train.dataset.frame_step, num_class).to(device)
     networks = {'gen': gen, 'dis': dis}
 
     
@@ -190,7 +190,7 @@ def train_loop(train_loader,
     #####################################################    
 
     # Standard skelton
-    standard_bvh = cfg.train.dataset.standard_bvh if 'standard_bvh' in cfg else 'core/utils/CMU_standard.bvh'
+    standard_bvh = cfg.train.dataset.standard_bvh if hasattr(cfg.train.dataset, 'standard_bvh') else 'core/utils/CMU_standard.bvh'
     class_list = cfg.train.dataset.class_list
     
     # Cofficients of training loss
@@ -271,7 +271,7 @@ def train_loop(train_loader,
 
 
         # Generate noize z
-        z = Variable(gen.make_hidden(batchsize, x_data.shape[2])).to(device) if cfg.train.generator.use_z else None
+        z = Variable(gen.make_hidden(batchsize, x_data.shape[2])).to(device) if cfg.models.generator.use_z else None
        
         
         ### Forward Generator
@@ -431,7 +431,7 @@ def train_loop(train_loader,
             preview_list = []
             preview_list.append({'caption': 'real', 'motion': x_data[0,:,:,:], 'control': control.data.cpu()[:1,:,:,:]})
             for k in range(3):
-                z = Variable(gen.make_hidden(1, x_data.shape[2])).to(device) if cfg.train.generator.use_z else None
+                z = Variable(gen.make_hidden(1, x_data.shape[2])).to(device) if cfg.models.generator.use_z else None
                 fake_label = torch.randint(0, len(class_list), size=(1,)).type(torch.LongTensor).to(device)
 
                 fake_v_trajectory, x_fake = gen(v_control[:1,:,:,:], z, fake_label)
