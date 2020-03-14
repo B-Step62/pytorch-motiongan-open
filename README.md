@@ -30,7 +30,7 @@ Configファイルは辞書の階層構造を取り、core/utils/config.pyに従
 ### モデルの指定
 モデル情報はConfigファイルのmodelsプロパティに記載される。以下各プロパティの説明。
 
-#### Generator  
+**Generator**
 
 | プロパティ| 説明 |
 |:---:|:---|
@@ -43,7 +43,7 @@ Configファイルは辞書の階層構造を取り、core/utils/config.pyに従
 | z_dim | ノイズzの次元数 |
 | normalize_z | Latent Transformerの入力に対してPixelwiseNormalizationを適用するかどうか |
 
-#### Discriminator
+**Discriminator**  
 Generatorと同様のものは省略。
 
 | プロパティ| 説明 |
@@ -66,3 +66,15 @@ Generatorと同様のものは省略。
 | frame_step | 動作をサンプリングするフレームステップ |
 | augment_fps | FPS Augmentationを行うかどうか |
 | rotate | y軸を中心とした回転Augmentationを行うかどうか |
+
+
+***
+# テスト
+test.pyを用いて、学習モデルを用いた動作生成テストを行うことができる。ただし、より自由な入力からの動作生成や定量評価・統計分析は後述専用のコードで行い、test.pyはどちらかというとValidationに近い目的で、特定のデータセット(∌学習データ)から抽出したControl Signalについて動作を生成するという簡単なテストのみを行う。  
+
+**実行コマンド**
+```
+python　test.py {PATH_TO_CONFIG_FILE} --weight {PATH_TO_CHECKPOINT} --num_samples {NUMBER_OF_SAMPLES_IN_A_VIDEO} 
+```
+
+Configファイルに関しては、学習と同じ形式で同一ファイル内にtestプロパティとして記載すればよい。
