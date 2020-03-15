@@ -67,11 +67,18 @@ def test():
 
 
     # Load weight
-    if not os.path.exists(args.weight):
+    if args.weight is not None:
+        checkpoint_path = args.weight
+    else:
+        checkpoint_path = os.path.join(cfg.test.out, 'gen.pth')
+        if not os.path.exists(checkpoint_path):
+            checkpoint_path = sorted(glob.glob(os.path.join(cfg.test.out, 'checkpoint', 'iter_*.pth.tar')))[-1]
+
+    if not os.path.exists(checkpoint_path):
         print('Generator weight not found!')
     else:
-        print(f'Loading generator model from \033[1m{args.weight}\033[0m')
-        checkpoint = torch.load(args.weight, map_location=device)
+        print(f'Loading generator model from \033[1m{checkpoint_path}\033[0m')
+        checkpoint = torch.load(checkpoint_path, map_location=device)
         if 'gen_state_dict' in checkpoint:
             gen.load_state_dict(checkpoint['gen_state_dict'])
             iteration = checkpoint['iteration']

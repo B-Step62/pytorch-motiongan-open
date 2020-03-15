@@ -24,8 +24,8 @@ models = dict(
 train = dict(
     batchsize = 24,
     num_workers = 16,
-    total_iterations = 100,
-    out = 'results/MotionGAN/Styled_choicefps_step8',
+    total_iterations = 200000,
+    out = 'results/MotionGAN/Styled_augfps_step8',
 
     # Dataset
     dataset=dict(
@@ -69,7 +69,7 @@ train = dict(
 
 # Testing strategy
 test = dict(
-    out = 'results/MotionGAN/Styled_choicefps_step8',
+    out = 'results/MotionGAN/Styled_augfps_step8',
     dataset=dict(
         data_root = './data/test_jp/CMU_jp_new/Locomotion_jp/walking_jp',
         class_list = [],
