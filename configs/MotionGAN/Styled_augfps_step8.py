@@ -42,9 +42,9 @@ train = dict(
     ),
 
     # Iteration intervals
-    display_interval = 10,
-    preview_interval = 10,
-    save_interval = 100,
+    display_interval = 100,
+    preview_interval = 5000,
+    save_interval = 20000,
 
     # Loss
     GAN_type = 'normal',
