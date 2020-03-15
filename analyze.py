@@ -96,7 +96,7 @@ def main():
 
     # Apply PCA
     if args.mode == 'pca':
-        result_path = os.path.join(result_dir, f'PCA_{args.target}.pdf')
+        result_path = os.path.join(result_dir, f'PCA_{args.target}.png')
         apply_pca(cfg, gen, result_path, args.target, components, device)
 
     # Apply tSNE

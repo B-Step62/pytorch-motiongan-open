@@ -51,7 +51,7 @@ def apply_pca(cfg, gen, result_path, target, components, device, num_samples_per
 
     ## Fit PCA and plot            
     gcols, grows = len(list(target_data.keys())), len(components)
-    fig = plt.figure(figsize=(10*gcols, 10*grows), dpi=216)
+    fig = plt.figure(figsize=(10*gcols, 10*grows), dpi=72)
 
     # Get maximum component 
     max_component = max([max(p) for p in components])
@@ -73,11 +73,11 @@ def apply_pca(cfg, gen, result_path, target, components, device, num_samples_per
             plt.ylabel(f'{y}th principal')
 
             # Scatter points
-            plt.scatter(data_reduced[:,x-1], data_reduced[:,y-1], s=30, c=[cm.hsv(l/len(class_list)) for l in label_data])
+            plt.scatter(data_reduced[:,x-1], data_reduced[:,y-1], s=50, c=[cm.hsv(l/len(class_list)) for l in label_data])
             # Plot class name at center of each cluster
             for c in range(len(class_list)):
                 center = np.mean(data_reduced[c*num_samples_per_class:(c+1)*num_samples_per_class,:], axis=0)
-                plt.text(center[x-1], center[y-1], class_list[c], fontsize=8, alpha=0.7)
+                plt.text(center[x-1], center[y-1], class_list[c], fontsize=12, alpha=0.7)
 
     plt.savefig(result_path)
     plt.close()

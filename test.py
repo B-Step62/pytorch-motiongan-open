@@ -27,7 +27,7 @@ from core.utils.motion_utils import reconstruct_v_trajectory
 # 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 def parse_args():
-    parser = argparse.ArgumentParser(description='EqualledCycleGAN')
+    parser = argparse.ArgumentParser(description='MotionGAN')
     parser.add_argument('config', help='config file path')
     parser.add_argument('--weight', type=str, required=True)
     parser.add_argument('--gpu', type=int, default=0,

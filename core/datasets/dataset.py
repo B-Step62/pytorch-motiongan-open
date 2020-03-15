@@ -117,9 +117,9 @@ def collect_motion_datalist(cfg, sampling_interval=3, mode='train'):
     for l,name in enumerate(cfg.class_list):
         label_dict[name] = l
 
-    # Prepare skelton
-    skelton, non_end_bones, joints_to_index, permute_xyz_order = btoj.get_standard_format(cfg.standard_bvh)
-    _, non_zero_joint_to_index = btoj.cut_zero_length_bone(skelton, joints_to_index)
+    # Prepare skeleton
+    skeleton, non_end_bones, joints_to_index, permute_xyz_order = btoj.get_standard_format(cfg.standard_bvh)
+    _, non_zero_joint_to_index = btoj.cut_zero_length_bone(skeleton, joints_to_index)
 
 
     # Create data
@@ -145,7 +145,7 @@ def collect_motion_datalist(cfg, sampling_interval=3, mode='train'):
             with open(data_path, mode='rb') as f:
                 data = pickle.load(f)
         else:
-            data = create_data_from_npy(cfg, npy_path, data_path, skelton, joints_to_index)
+            data = create_data_from_npy(cfg, npy_path, data_path, skeleton, joints_to_index)
             if data is None: continue
 
         # Register label info
@@ -169,13 +169,13 @@ def collect_motion_datalist(cfg, sampling_interval=3, mode='train'):
 
 
 
-def create_data_from_npy(cfg, npy_path, data_path, skelton, joints_to_index):
+def create_data_from_npy(cfg, npy_path, data_path, skeleton, joints_to_index):
     # load motion
     motion = np.load(npy_path)
     if len(motion.shape) != 2:
         motion = np.reshape(motion, (motion.shape[0], motion.shape[1]*3))
     # Cut zero from motion
-    _, motion = btoj.cut_zero_length_bone_frames(motion, skelton, joints_to_index) 
+    _, motion = btoj.cut_zero_length_bone_frames(motion, skeleton, joints_to_index) 
 
     motion = motion[cfg.start_offset:,:]
 
