@@ -78,3 +78,22 @@ python　test.py {PATH_TO_CONFIG_FILE} --weight {PATH_TO_CHECKPOINT} --num_sampl
 ```
 
 Configファイルに関しては、学習と同じ形式で同一ファイル内にtestプロパティとして記載すればよい。
+
+***
+# 分析
+analyze.pyでは学習したモデルの中間出力について、PCAやtSNEを用いた分析を行える。
+```
+python　analyze.py {PATH_TO_CONFIG_FILE} --weight {PATH_TO_CHECKPOINT} --mode {WHICH METHOD TO APPLY} --target {TARGET_FEATURE} ...
+``` 
+手法は`--mode`オプションで指定する。PCA・tSNEの他に、クラスタの重心間の距離行列をheatmapで可視化する"heatmap"というモードが指定できる。  
+`--target`オプションでは目的の中間出力(Latent Transformの出力**w**やAdaINの出力(層名で指定))を指定する。 
+
+また、PCAとtSNEでは可視化したい主成分のペアを`--components`オプションでx-yの形で順に指定すると、それぞれに対応する複数のグラフが1つのファイルに出力される。  
+**例**　第1&2主成分、第2&3主成分、第3&4主成分を可視化したグラフを出力したい場合。
+```
+python　analyze.py {PATH_TO_CONFIG_FILE} --weight {PATH_TO_CHECKPOINT} --mode pca --target w --components 1-2,2-3,3-4
+```
+
+<img src="asset/PCA_w.png" width="400px"> <img src="asset/centroid_heatmap.png" width="420px">
+
+左：Latent Transformの出力**w**をPCAで可視化。　右：クラスタの重心の距離をheatmapで可視化。
