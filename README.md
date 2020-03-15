@@ -2,6 +2,7 @@
 # データセット作成
 
 bvhファイルは`{スタイルの名前}_*.npy`という名前で適当な場所に置いておく。  
+(CMUのStyled_Walkデータ：https://drive.google.com/open?id=1FyevwosIAghDoo7YLhtZ_wcmIgRHIyvZ ）  
 以下のスクリプトを実行すると、指定した場所に元のbvhファイルのコピーと、joint-positionに変換した動作のnpyファイルが生成される。
 ```
 python make_dataset.py --dataset {ROOT_OF_BVH_FILES} --out {OUTPUT_DIRECTORY}
@@ -19,6 +20,10 @@ python make_dataset.py --dataset {ROOT_OF_BVH_FILES} --out {OUTPUT_DIRECTORY}
 モデルの学習は以下のコマンドにより実行する。
 ```
 python train.py {PATH_TO_CONFIG_FILE}
+```
+**例**　
+```
+python train.py config/MotionGAN/Styled_augfps_step8.py
 ```
 特定のcheckpoint(.pth.tar)から学習を再開する場合、コマンドラインオプション`--resume`を用いて指定する。
 
@@ -76,6 +81,10 @@ test.pyを用いて、学習モデルを用いた動作生成テストを行う�
 ```
 python　test.py {PATH_TO_CONFIG_FILE} --weight {PATH_TO_CHECKPOINT} --num_samples {NUMBER_OF_SAMPLES_IN_A_VIDEO} 
 ```
+**例**　
+```
+python test.py config/MotionGAN/Styled_augfps_step8.py --weight results/MotionGAN/Styled_augfps_step8/checkpoints/iter_99999.pth.tar --num_samples 3
+```
 
 Configファイルに関しては、学習と同じ形式で同一ファイル内にtestプロパティとして記載すればよい。
 
@@ -97,3 +106,22 @@ python　analyze.py {PATH_TO_CONFIG_FILE} --weight {PATH_TO_CHECKPOINT} --mode p
 <img src="asset/PCA_w.png" width="400px"> <img src="asset/centroid_heatmap.png" width="420px">
 
 左：Latent Transformの出力**w**をPCAで可視化。　右：クラスタの重心の距離をheatmapで可視化。
+
+*** 
+# 定量評価
+Trajectory errorやFoot skate distanceなどの指標を用いた定量評価を行うことができる。
+```
+python eval_quantitative.py {PATH_TO_CONFIG_FILE} --weight {PATH_TO_CHECKPOINT}
+```
+実行すると、Configで指定したテストデータについて評価を行い、結果のcsvが出力先フォルダの/eval/以下に保存される。
+
+***
+# Style Latent Vectorの探索
+style_search.pyでは最適化による動作からのスタイル推定を行う。  
+具体的には、対象の動作データ(.npyまたは.pkl)と学習済みモデルを指定すると、モデルの出力が対象動作に近くなるように、Latent Vector **w**そのものを最適化する。なお、最適化のハイパーパラメータはコード中で指定している。
+```
+python style_search.py {PATH_TO_CONFIG_FILE} --weight {PATH_TO_CHECKPOINT} --target {PATH_TO_TARGET_FILE} 
+```
+実行すると、PCAで圧縮した2次元平面上での最適化の軌跡を示したpdfが保存される。また、`--save_video`オプションをつけると、対象の動作・獲得したLatent Vectorに基づく生成動作・(対象のスタイルで生成した動作)を可視化した動画を生成できる。
+
+<img src="asset/PCA_iter_2000_256-384.png" width="480px">
