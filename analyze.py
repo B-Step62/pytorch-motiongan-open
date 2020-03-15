@@ -28,7 +28,7 @@ def parse_args():
     parser.add_argument('--weight', type=str)
     parser.add_argument('--gpu', type=int, default=0,
                         help='GPU ID (negative value indicates CPU)')
-    parser.add_argument('--components', '-c', type=str, default='(1,2)',
+    parser.add_argument('--components', '-c', type=str, default='1-2',
                         help='Specify component to show on 2d-axis in form of "x1-y1,x2-y2,x3-y3,...". Each pair of components are shown in separate graph in one file.')
     args = parser.parse_args()
     return args
