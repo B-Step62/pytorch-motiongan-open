@@ -1,3 +1,11 @@
+## Requirement
+- Python3 (>=3.6)
+- Pytorch (>=0.4.1)
+- cv2
+- scipy
+- tensorboardX
+- ImageMagick
+
 ***
 # データセット作成
 
